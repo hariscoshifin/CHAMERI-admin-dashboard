@@ -1,0 +1,67 @@
+import { Outlet } from "react-router-dom";
+import { useState } from "react";
+import Sidebar from "./Sidebar";
+import ProfileModal from "./ProfileModal";
+import { Bell, Search } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+
+const AdminLayout = () => {
+  const { admin } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
+
+  return (
+    <div className="flex h-screen bg-dark-900 overflow-hidden">
+      <Sidebar onProfileClick={() => setShowProfile(true)} />
+
+      {/* Main content area */}
+      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
+        {/* Top Header Bar */}
+        <header className="h-16 bg-dark-800/80 backdrop-blur-sm border-b border-surface-border flex items-center justify-between px-6 shrink-0">
+          {/* Search */}
+          <div className="flex items-center gap-2 bg-dark-700 rounded-xl px-4 py-2 w-72 border border-surface-border focus-within:border-brand-500/50 transition-colors">
+            <Search size={16} className="text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search anything..."
+              className="bg-transparent text-sm text-gray-300 placeholder-gray-600 outline-none w-full"
+            />
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center gap-4">
+            {/* Notification bell */}
+            <button className="relative p-2 rounded-xl text-gray-400 hover:text-white hover:bg-surface-light transition-all">
+              <Bell size={20} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full animate-pulse-slow" />
+            </button>
+
+            {/* Admin avatar — click to open profile modal */}
+            <button
+              onClick={() => setShowProfile(true)}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-xs overflow-hidden">
+                {admin?.avatar ? (
+                  <img src={admin.avatar} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  admin?.name?.[0]?.toUpperCase() || "A"
+                )}
+              </div>
+              <span className="text-sm text-gray-300 font-medium">{admin?.name}</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* Profile Modal */}
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+    </div>
+  );
+};
+
+export default AdminLayout;
