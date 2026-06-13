@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import UserManagement from "./pages/UserManagement";
 import AdminOnlyRoute from "./components/AdminOnlyRoute";
+import AboutMain from "./pages/AboutMain";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +58,8 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<AdminLayout />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/home/hero" element={<Placeholder title="Hero Section" />} />
+                <Route path="/home/hero" element={<Placeholder title="Home - Hero Section" />} />
+                <Route path="/about/main" element={<AboutMain />} />
                 <Route path="/projects" element={<Placeholder title="Projects" />} />
                 <Route path="/services" element={<Placeholder title="Services" />} />
                 <Route path="/blogs" element={<Placeholder title="Blogs" />} />

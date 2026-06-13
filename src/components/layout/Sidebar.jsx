@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   LayoutDashboard, FolderOpen, Briefcase, MessageSquare,
   FileText, Star, LogOut, ChevronRight, Settings, Zap,
-  ChevronUp, ShieldCheck, Home, Image,
+  ChevronUp, ShieldCheck, Home, Image, Info,
 } from "lucide-react";
 
 // ─── Nav Structure ────────────────────────────────────────────────────────────
@@ -17,6 +17,13 @@ const navItems = [
       { label: "Hero Section", to: "/home/hero", icon: Image },
     ],
   },
+  {
+    label: "About Us",
+    icon: Info,
+    children: [
+      { label: "Main Section", to: "/about/main", icon: Image },
+    ],
+  },
   { label: "Projects", to: "/projects", icon: FolderOpen },
   { label: "Services", to: "/services", icon: Briefcase },
   { label: "Blogs", to: "/blogs", icon: FileText },
@@ -26,7 +33,7 @@ const navItems = [
   { label: "Settings", to: "/settings", icon: Settings },
 ];
 
-const isAdminRole = (role) => role === "admin" || role === "superadmin";
+const isAdminRole = (role) => role === "admin";
 
 // ─── Submenu Item ─────────────────────────────────────────────────────────────
 const SubItem = ({ to, label, icon: Icon }) => (
@@ -53,11 +60,10 @@ const Sidebar = ({ onProfileClick }) => {
 
   // Track which parent menus are open
   const [openMenus, setOpenMenus] = useState(() => {
-    // Auto-open "Home" if current path is inside it
-    const homeChildren = ["/home/hero"];
-    return homeChildren.some((p) => location.pathname.startsWith(p))
-      ? { Home: true }
-      : {};
+    const activeParent = navItems.find((item) => 
+      item.children?.some((child) => location.pathname.startsWith(child.to))
+    );
+    return activeParent ? { [activeParent.label]: true } : {};
   });
 
   const toggleMenu = (label) =>

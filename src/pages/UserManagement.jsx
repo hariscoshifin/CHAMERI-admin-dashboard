@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../api/axiosInstance";
 import toast from "react-hot-toast";
 import {
   ShieldCheck, RefreshCw, Plus, Trash2, Mail,
   Key, X, Loader2, AlertTriangle, Check, Users,
+  Eye, EyeOff,
 } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -101,6 +102,7 @@ const ConfirmDeleteModal = ({ user, onConfirm, onClose, loading }) => (
 // ─── Create User Modal ────────────────────────────────────────────────────────
 const CreateUserModal = ({ onClose, onCreated }) => {
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "editor" });
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const selectedRole = getRoleInfo(form.role);
 
@@ -160,11 +162,21 @@ const CreateUserModal = ({ onClose, onCreated }) => {
           {/* Password */}
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Password</label>
-            <input
-              type="password" name="password" value={form.password} onChange={handleChange} required
-              placeholder="Min. 6 characters"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-brand-500 transition-colors"
-            />
+            <div className="relative">
+              <input
+                type={showPw ? "text" : "password"}
+                name="password" value={form.password} onChange={handleChange} required
+                placeholder="Min. 6 characters"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 text-sm text-gray-800 outline-none focus:border-brand-500 transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((p) => !p)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
           </div>
           {/* Role */}
           <div>
@@ -177,7 +189,6 @@ const CreateUserModal = ({ onClose, onCreated }) => {
                 <option key={r.value} value={r.value}>{r.label}</option>
               ))}
             </select>
-            {/* Role warning */}
             <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
               <AlertTriangle size={11} />
               {selectedRole.warning}
@@ -203,6 +214,7 @@ const CreateUserModal = ({ onClose, onCreated }) => {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const UserManagement = () => {
   const qc = useQueryClient();
+
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -397,7 +409,7 @@ const UserManagement = () => {
               key={user._id}
               className="grid grid-cols-12 px-6 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors group"
             >
-              {/* User */}
+              {/* User info */}
               <div className="col-span-6 flex items-center gap-3">
                 <img
                   src={avatarUrl(user.name, user.email)}

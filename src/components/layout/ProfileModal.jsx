@@ -118,7 +118,7 @@ const ProfileModal = ({ onClose }) => {
           <div className="flex justify-center mb-5">
             <span className="flex items-center gap-1.5 border border-red-300 text-red-500 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
               <ShieldCheck size={13} />
-              {admin?.role === "superadmin" ? "Super Admin" : "Admin"} Account
+              {"Admin"} Account
             </span>
           </div>
 
