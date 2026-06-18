@@ -38,6 +38,14 @@ const navItems = [
       { label: "Testimonial Section", to: "/about/testimonial", icon: MessageSquare },
     ],
   },
+  {
+    label: "Gallery",
+    icon: Image,
+    children: [
+      { label: "Hero Section",    to: "/gallery/hero",   icon: Image },
+      { label: "Gallery Images",  to: "/gallery/images", icon: Image },
+    ],
+  },
   { label: "Projects", to: "/projects", icon: FolderOpen },
   { label: "Services", to: "/services", icon: Briefcase },
   { label: "Blogs", to: "/blogs", icon: FileText },

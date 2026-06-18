@@ -24,6 +24,8 @@ import HomeChooseUs from "./pages/HomeChooseUs";
 import HomeGallery from "./pages/HomeGallery";
 import HomeOurTeam from "./pages/HomeOurTeam";
 import HomeTestimonial from "./pages/HomeTestimonial";
+import GalleryHero from "./pages/GalleryHero";
+import GalleryImages from "./pages/GalleryImages";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,7 +93,11 @@ function App() {
                 <Route path="/about/special" element={<AboutSpecial />} />
                 <Route path="/about/board" element={<AboutBoard />} />
                 <Route path="/about/testimonial" element={<AboutTestimonial />} />
-                
+
+                {/* Gallery Routes */}
+                <Route path="/gallery/hero" element={<GalleryHero />} />
+                <Route path="/gallery/images" element={<GalleryImages />} />
+
                 <Route path="/projects" element={<Placeholder title="Projects" />} />
                 <Route path="/services" element={<Placeholder title="Services" />} />
                 <Route path="/blogs" element={<Placeholder title="Blogs" />} />
