@@ -26,6 +26,13 @@ import HomeOurTeam from "./pages/HomeOurTeam";
 import HomeTestimonial from "./pages/HomeTestimonial";
 import GalleryHero from "./pages/GalleryHero";
 import GalleryImages from "./pages/GalleryImages";
+import KiwanoHero from "./pages/KiwanoHero";
+import KiwanoLuxuryVillas from "./pages/KiwanoLuxuryVillas";
+import KiwanoFeature from "./pages/KiwanoFeature";
+import KiwanoTour360 from "./pages/KiwanoTour360";
+import KiwanoGallery from "./pages/KiwanoGallery";
+import KiwanoAmenities from "./pages/KiwanoAmenities";
+import KiwanoOtherProjects from "./pages/KiwanoOtherProjects";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +104,15 @@ function App() {
                 {/* Gallery Routes */}
                 <Route path="/gallery/hero" element={<GalleryHero />} />
                 <Route path="/gallery/images" element={<GalleryImages />} />
+
+                {/* Kiwano Routes */}
+                <Route path="/kiwano/hero" element={<KiwanoHero />} />
+                <Route path="/kiwano/luxuryvillas" element={<KiwanoLuxuryVillas />} />
+                <Route path="/kiwano/feature" element={<KiwanoFeature />} />
+                <Route path="/kiwano/360tour" element={<KiwanoTour360 />} />
+                <Route path="/kiwano/gallery" element={<KiwanoGallery />} />
+                <Route path="/kiwano/amenities" element={<KiwanoAmenities />} />
+                <Route path="/kiwano/otherprojects" element={<KiwanoOtherProjects />} />
 
                 <Route path="/projects" element={<Placeholder title="Projects" />} />
                 <Route path="/services" element={<Placeholder title="Services" />} />
