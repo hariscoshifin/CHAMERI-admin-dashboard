@@ -76,6 +76,22 @@ const InputField = ({ label, value, onChange, placeholder }) => (
   </div>
 );
 
+// --- Textarea Field Component ---
+const TextareaField = ({ label, value, onChange, placeholder }) => (
+  <div>
+    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">
+      {label}
+    </label>
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows="3"
+      className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block p-3 transition-colors outline-none resize-y"
+    />
+  </div>
+);
+
 // ── Main Component ───────────────────────────────────────────────────────────
 const HomeVillaPlan = () => {
   const qc = useQueryClient();
@@ -90,11 +106,13 @@ const HomeVillaPlan = () => {
   const [subheading, setSubheading] = useState("");
   
   const [card1Heading, setCard1Heading] = useState("");
+  const [card1Description, setCard1Description] = useState("");
   const [card1ExistingImage, setCard1ExistingImage] = useState("");
   const [card1NewImage, setCard1NewImage] = useState(null);
   const [card1Preview, setCard1Preview] = useState("");
 
   const [card2Heading, setCard2Heading] = useState("");
+  const [card2Description, setCard2Description] = useState("");
   const [card2ExistingImage, setCard2ExistingImage] = useState("");
   const [card2NewImage, setCard2NewImage] = useState(null);
   const [card2Preview, setCard2Preview] = useState("");
@@ -115,11 +133,13 @@ const HomeVillaPlan = () => {
     setSubheading(data?.villaPlan?.subheading || "");
     
     setCard1Heading(data?.villaPlan?.card1?.heading || "");
+    setCard1Description(data?.villaPlan?.card1?.description || "");
     setCard1ExistingImage(data?.villaPlan?.card1?.image || "");
     setCard1NewImage(null);
     setCard1Preview("");
 
     setCard2Heading(data?.villaPlan?.card2?.heading || "");
+    setCard2Description(data?.villaPlan?.card2?.description || "");
     setCard2ExistingImage(data?.villaPlan?.card2?.image || "");
     setCard2NewImage(null);
     setCard2Preview("");
@@ -133,9 +153,11 @@ const HomeVillaPlan = () => {
       formData.append("subheading", subheading);
       
       formData.append("card1Heading", card1Heading);
+      formData.append("card1Description", card1Description);
       if (card1NewImage) formData.append("card1Image", card1NewImage);
       
       formData.append("card2Heading", card2Heading);
+      formData.append("card2Description", card2Description);
       if (card2NewImage) formData.append("card2Image", card2NewImage);
 
       return api.put("/home/main/villaplan", formData, {
@@ -174,7 +196,7 @@ const HomeVillaPlan = () => {
         title="Villa Plan Details"
         icon={FolderOpen}
         onSave={() => villaplanMutation.mutate()}
-        isSaving={villaplanMutation.isLoading}
+        isSaving={villaplanMutation.isPending}
         saved={villaplanFlash.saved}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
@@ -238,6 +260,7 @@ const HomeVillaPlan = () => {
             </div>
             
             <InputField label="Card Heading" value={card1Heading} onChange={e => setCard1Heading(e.target.value)} placeholder="e.g. Premium Villa" />
+            <TextareaField label="Card Description" value={card1Description} onChange={e => setCard1Description(e.target.value)} placeholder="e.g. A beautiful luxury villa..." />
           </div>
 
           {/* Card 2 */}
@@ -285,6 +308,7 @@ const HomeVillaPlan = () => {
             </div>
             
             <InputField label="Card Heading" value={card2Heading} onChange={e => setCard2Heading(e.target.value)} placeholder="e.g. Standard Villa" />
+            <TextareaField label="Card Description" value={card2Description} onChange={e => setCard2Description(e.target.value)} placeholder="e.g. A standard villament..." />
           </div>
 
         </div>

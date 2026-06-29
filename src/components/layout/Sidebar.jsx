@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   LayoutDashboard, FolderOpen, Briefcase, MessageSquare,
   FileText, Star, LogOut, ChevronRight, Settings, Zap,
-  ChevronUp, ShieldCheck, Home, Image, Info,
+  ChevronUp, ShieldCheck, Home, Image, Info, HelpCircle,
 } from "lucide-react";
 
 // ─── Nav Structure ────────────────────────────────────────────────────────────
@@ -22,6 +22,7 @@ const navItems = [
       { label: "Gallery", to: "/home/gallery", icon: Image },
       { label: "Our Team", to: "/home/team", icon: Briefcase },
       { label: "Testimonial", to: "/home/testimonial", icon: MessageSquare },
+      { label: "FAQ Section", to: "/home/faq", icon: HelpCircle },
     ],
   },
   {

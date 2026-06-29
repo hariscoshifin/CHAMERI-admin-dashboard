@@ -133,7 +133,7 @@ const HomeLogos = () => {
         title="Partner / Client Logos"
         icon={ImageIcon}
         onSave={() => logosMutation.mutate()}
-        isSaving={logosMutation.isLoading}
+        isSaving={logosMutation.isPending}
         saved={logosFlash.saved}
       >
         <div>

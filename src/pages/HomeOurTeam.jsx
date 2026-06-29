@@ -28,7 +28,6 @@ const FormCard = ({ title, icon: Icon, children, onSave, isSaving, saved }) => {
       <div className="space-y-5">{children}</div>
 
       <div className="mt-6 flex justify-end items-center gap-3 border-t border-gray-50 pt-5">
-        {/* Success Banner */}
         <div
           className={`flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl bg-green-50 text-green-600 border border-green-100 transition-all duration-300 ease-in-out ${
             saved ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none absolute right-40"
@@ -76,45 +75,43 @@ const InputField = ({ label, value, onChange, placeholder }) => (
   </div>
 );
 
-// --- Component to Manage Team Card ---
+// --- Fully Controlled Team Card ---
+// No local useState — all data lives in parent. Editing works correctly.
 const TeamCardManager = ({ index, cardData, onUpdate }) => {
   const fileInputRef = useRef(null);
 
-  const [name, setName] = useState(cardData.name || "");
-  const [designation, setDesignation] = useState(cardData.designation || "");
-  const [existingImage, setExistingImage] = useState(cardData.image || "");
-  const [newImage, setNewImage] = useState(null);
+  // preview URL only for newly selected file (purely local, doesn't affect save)
   const [preview, setPreview] = useState("");
 
-  // Sync to parent when local state changes
-  useEffect(() => {
-    onUpdate({ name, designation, newImage });
-  }, [name, designation, newImage]);
+  const handleFileChange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    setPreview(URL.createObjectURL(f));
+    onUpdate({ ...cardData, newImage: f });
+    e.target.value = "";
+  };
 
-  // Update internal state when props refresh from DB
-  useEffect(() => {
-    setName(cardData.name || "");
-    setDesignation(cardData.designation || "");
-    setExistingImage(cardData.image || "");
-    setNewImage(null);
-    setPreview("");
-  }, [cardData.image]); // Only reset on fresh DB fetch to prevent loop bugs
+  const displayImage = preview || cardData.image || "";
 
   return (
     <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 space-y-4 relative">
-      <p className="text-xs font-black uppercase tracking-widest text-brand-500 absolute top-4 right-4">Card {index}</p>
-      
+      <p className="text-xs font-black uppercase tracking-widest text-brand-500 absolute top-4 right-4">
+        Card {index}
+      </p>
+
       {/* Image Upload */}
       <div className="pt-6">
-        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Profile Image</label>
+        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">
+          Profile Image
+        </label>
         <div
           onClick={() => fileInputRef.current?.click()}
           className="relative w-full h-40 rounded-xl border-2 border-dashed border-gray-200 bg-white flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-brand-300 transition-colors overflow-hidden group"
         >
-          {(preview || existingImage) ? (
+          {displayImage ? (
             <>
               <img
-                src={preview || existingImage}
+                src={displayImage}
                 alt={`Member ${index}`}
                 className="w-full h-full object-cover"
               />
@@ -135,39 +132,48 @@ const TeamCardManager = ({ index, cardData, onUpdate }) => {
           ref={fileInputRef}
           accept="image/*"
           className="hidden"
-          onChange={e => {
-            const f = e.target.files[0];
-            if (!f) return;
-            setNewImage(f);
-            setPreview(URL.createObjectURL(f));
-          }}
+          onChange={handleFileChange}
         />
       </div>
 
+      {/* Text Fields */}
       <div className="space-y-3 pt-2">
-        <InputField label="Name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. John Doe" />
-        <InputField label="Designation" value={designation} onChange={e => setDesignation(e.target.value)} placeholder="e.g. Senior Architect" />
+        <InputField
+          label="Name"
+          value={cardData.name || ""}
+          onChange={(e) => onUpdate({ ...cardData, name: e.target.value })}
+          placeholder="e.g. John Doe"
+        />
+        <InputField
+          label="Designation"
+          value={cardData.designation || ""}
+          onChange={(e) => onUpdate({ ...cardData, designation: e.target.value })}
+          placeholder="e.g. Senior Architect"
+        />
       </div>
     </div>
   );
 };
 
 // ── Main Component ───────────────────────────────────────────────────────────
+const CARD_KEYS = ["card1", "card2", "card3", "card4", "card5"];
+
+const emptyCard = () => ({ name: "", designation: "", image: "", newImage: null });
+
 const HomeOurTeam = () => {
   const qc = useQueryClient();
   const teamFlash = useFlashSuccess();
 
-  // State
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
   const [separateCardHeading, setSeparateCardHeading] = useState("");
-  
+
   const [cardsData, setCardsData] = useState({
-    card1: { name: "", designation: "", image: "", newImage: null },
-    card2: { name: "", designation: "", image: "", newImage: null },
-    card3: { name: "", designation: "", image: "", newImage: null },
-    card4: { name: "", designation: "", image: "", newImage: null },
-    card5: { name: "", designation: "", image: "", newImage: null },
+    card1: emptyCard(),
+    card2: emptyCard(),
+    card3: emptyCard(),
+    card4: emptyCard(),
+    card5: emptyCard(),
   });
 
   // Fetch Data
@@ -179,27 +185,24 @@ const HomeOurTeam = () => {
     },
   });
 
-  // Seed data
+  // Seed state from DB data
   useEffect(() => {
-    if (!data || !data.ourTeam) return;
+    if (!data?.ourTeam) return;
     setHeading(data.ourTeam.heading || "");
     setSubheading(data.ourTeam.subheading || "");
     setSeparateCardHeading(data.ourTeam.separateCard?.heading || "");
-    
+
     setCardsData({
-      card1: { ...data.ourTeam.card1, newImage: null },
-      card2: { ...data.ourTeam.card2, newImage: null },
-      card3: { ...data.ourTeam.card3, newImage: null },
-      card4: { ...data.ourTeam.card4, newImage: null },
-      card5: { ...data.ourTeam.card5, newImage: null },
+      card1: { ...emptyCard(), ...data.ourTeam.card1 },
+      card2: { ...emptyCard(), ...data.ourTeam.card2 },
+      card3: { ...emptyCard(), ...data.ourTeam.card3 },
+      card4: { ...emptyCard(), ...data.ourTeam.card4 },
+      card5: { ...emptyCard(), ...data.ourTeam.card5 },
     });
   }, [data]);
 
   const handleCardUpdate = (key, newData) => {
-    setCardsData(prev => ({ 
-      ...prev, 
-      [key]: { ...prev[key], ...newData } 
-    }));
+    setCardsData((prev) => ({ ...prev, [key]: newData }));
   };
 
   // Mutation
@@ -209,13 +212,13 @@ const HomeOurTeam = () => {
       formData.append("heading", heading);
       formData.append("subheading", subheading);
       formData.append("separateCardHeading", separateCardHeading);
-      
-      ["card1", "card2", "card3", "card4", "card5"].forEach(key => {
-        formData.append(`${key}Name`, cardsData[key].name);
-        formData.append(`${key}Designation`, cardsData[key].designation);
-        
-        if (cardsData[key].newImage) {
-          formData.append(`${key}Image`, cardsData[key].newImage);
+
+      CARD_KEYS.forEach((key) => {
+        const card = cardsData[key];
+        formData.append(`${key}Name`, card.name || "");
+        formData.append(`${key}Designation`, card.designation || "");
+        if (card.newImage) {
+          formData.append(`${key}Image`, card.newImage);
         }
       });
 
@@ -227,7 +230,8 @@ const HomeOurTeam = () => {
       teamFlash.flash();
       qc.invalidateQueries(["home-main"]);
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Failed to save Our Team section"),
+    onError: (err) =>
+      toast.error(err.response?.data?.message || "Failed to save Our Team section"),
   });
 
   if (isLoading) {
@@ -243,7 +247,9 @@ const HomeOurTeam = () => {
       {/* Header */}
       <div className="bg-dark-800 p-6 rounded-3xl mb-6 shadow-sm border border-surface-border">
         <h1 className="text-2xl font-bold text-white">Home — Our Team Section</h1>
-        <p className="text-gray-400 text-sm mt-1">Manage your team members and the "Join Us" highlight card.</p>
+        <p className="text-gray-400 text-sm mt-1">
+          Manage your team members and the "Join Us" highlight card.
+        </p>
       </div>
 
       {/* ── Our Team Section ── */}
@@ -251,36 +257,36 @@ const HomeOurTeam = () => {
         title="Our Team Details"
         icon={Users}
         onSave={() => teamMutation.mutate()}
-        isSaving={teamMutation.isLoading}
+        isSaving={teamMutation.isPending}
         saved={teamFlash.saved}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-          <InputField 
-            label="Heading" 
-            value={heading} 
-            onChange={e => setHeading(e.target.value)} 
-            placeholder="e.g. Meet Our Experts" 
+          <InputField
+            label="Heading"
+            value={heading}
+            onChange={(e) => setHeading(e.target.value)}
+            placeholder="e.g. Meet Our Experts"
           />
-          <InputField 
-            label="Subheading" 
-            value={subheading} 
-            onChange={e => setSubheading(e.target.value)} 
-            placeholder="e.g. The people behind our success." 
+          <InputField
+            label="Subheading"
+            value={subheading}
+            onChange={(e) => setSubheading(e.target.value)}
+            placeholder="e.g. The people behind our success."
           />
         </div>
 
         <div className="bg-brand-50 border border-brand-100 p-5 rounded-2xl mb-6">
           <h3 className="text-brand-600 font-bold mb-3">Separate Action Card</h3>
-          <InputField 
-            label="Heading" 
-            value={separateCardHeading} 
-            onChange={e => setSeparateCardHeading(e.target.value)} 
-            placeholder="e.g. Want to join our team? Apply now!" 
+          <InputField
+            label="Heading"
+            value={separateCardHeading}
+            onChange={(e) => setSeparateCardHeading(e.target.value)}
+            placeholder="e.g. Want to join our team? Apply now!"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
-          {["card1", "card2", "card3", "card4", "card5"].map((key, i) => (
+          {CARD_KEYS.map((key, i) => (
             <TeamCardManager
               key={key}
               index={i + 1}

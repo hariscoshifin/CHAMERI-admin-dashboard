@@ -148,7 +148,7 @@ const HomeAbout = () => {
         title="About Us Details"
         icon={Info}
         onSave={() => aboutMutation.mutate()}
-        isSaving={aboutMutation.isLoading}
+        isSaving={aboutMutation.isPending}
         saved={aboutFlash.saved}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

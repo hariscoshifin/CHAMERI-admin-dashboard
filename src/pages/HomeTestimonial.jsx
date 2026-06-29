@@ -124,6 +124,9 @@ const HomeTestimonial = () => {
         existingImage: card.image || "",
         newImage: null,
         preview: "",
+        existingCardImage: card.cardImage || "",
+        newCardImage: null,
+        cardImagePreview: "",
       }));
     }
 
@@ -137,6 +140,9 @@ const HomeTestimonial = () => {
         existingImage: "",
         newImage: null,
         preview: "",
+        existingCardImage: "",
+        newCardImage: null,
+        cardImagePreview: "",
       });
     }
 
@@ -155,6 +161,9 @@ const HomeTestimonial = () => {
         existingImage: "",
         newImage: null,
         preview: "",
+        existingCardImage: "",
+        newCardImage: null,
+        cardImagePreview: "",
       },
     ]);
   };
@@ -177,6 +186,12 @@ const HomeTestimonial = () => {
     setCards(cards.map(c => c.id === id ? { ...c, newImage: file, preview } : c));
   };
 
+  const handleCardImageChange = (id, file) => {
+    if (!file) return;
+    const cardImagePreview = URL.createObjectURL(file);
+    setCards(cards.map(c => c.id === id ? { ...c, newCardImage: file, cardImagePreview } : c));
+  };
+
   // Mutation
   const testimonialMutation = useMutation({
     mutationFn: async () => {
@@ -186,6 +201,7 @@ const HomeTestimonial = () => {
       
       const payloadData = [];
       let newImageIndex = 0;
+      let newCardImageIndex = 0;
 
       cards.forEach(card => {
         const payloadCard = {
@@ -193,12 +209,19 @@ const HomeTestimonial = () => {
           name: card.name,
           designation: card.designation,
           existingImage: card.existingImage,
+          existingCardImage: card.existingCardImage,
         };
 
         if (card.newImage) {
           payloadCard.newImageIndex = newImageIndex;
           formData.append("testimonialImages", card.newImage);
           newImageIndex++;
+        }
+
+        if (card.newCardImage) {
+          payloadCard.newCardImageIndex = newCardImageIndex;
+          formData.append("testimonialCardImages", card.newCardImage);
+          newCardImageIndex++;
         }
 
         payloadData.push(payloadCard);
@@ -238,7 +261,7 @@ const HomeTestimonial = () => {
         title="Testimonial Details"
         icon={MessageSquare}
         onSave={() => testimonialMutation.mutate()}
-        isSaving={testimonialMutation.isLoading}
+        isSaving={testimonialMutation.isPending}
         saved={testimonialFlash.saved}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
@@ -297,6 +320,38 @@ const HomeTestimonial = () => {
                     accept="image/*"
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     onChange={e => handleImageChange(card.id, e.target.files[0])}
+                  />
+                </div>
+              </div>
+              
+              {/* Card Background Image Upload */}
+              <div className="pt-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Card Image</label>
+                <div
+                  className="relative w-full h-32 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-brand-300 transition-colors overflow-hidden group/cardimg"
+                >
+                  {(card.cardImagePreview || card.existingCardImage) ? (
+                    <>
+                      <img
+                        src={card.cardImagePreview || card.existingCardImage}
+                        alt={`Card BG ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cardimg:opacity-100 transition-opacity flex items-center justify-center text-white">
+                        <UploadCloud size={20} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <UploadCloud size={20} className="mx-auto mb-2 text-gray-400" />
+                      <span className="text-xs font-medium text-gray-500">Upload Card Image</span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    onChange={e => handleCardImageChange(card.id, e.target.files[0])}
                   />
                 </div>
               </div>

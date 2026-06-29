@@ -76,53 +76,70 @@ const InputField = ({ label, value, onChange, placeholder }) => (
   </div>
 );
 
-// --- Component to Manage Gallery Card ---
+// --- Fully Controlled Gallery Card ---
+// No local useState — all data lives in parent. This avoids sync/loop bugs entirely.
 const GalleryCardManager = ({ index, cardData, onUpdate }) => {
   const fileInputRef = useRef(null);
 
-  const [name, setName] = useState(cardData.name || "");
-  const [place, setPlace] = useState(cardData.place || "");
-  const [date, setDate] = useState(cardData.date || "");
-  const [existingImages, setExistingImages] = useState(cardData.images || []);
-  const [newImages, setNewImages] = useState([]);
-
-  // Sync to parent when local state changes
-  useEffect(() => {
-    onUpdate({ name, place, date, existingImages, newImages });
-  }, [name, place, date, existingImages, newImages]);
+  const existingImages = cardData.existingImages || [];
+  const newImages = cardData.newImages || [];
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const totalCurrentImages = existingImages.length + newImages.length;
-    
-    if (totalCurrentImages + files.length > 2) {
-      toast.error(`Card ${index}: You can only upload a maximum of 2 images.`);
+    const total = existingImages.length + newImages.length;
+    if (total + files.length > 2) {
+      toast.error(`Card ${index}: Maximum 2 images allowed.`);
+      e.target.value = "";
       return;
     }
-
-    const newPreviews = files.map(file => ({ file, preview: URL.createObjectURL(file) }));
-    setNewImages(prev => [...prev, ...newPreviews]);
+    const previews = files.map((file) => ({ file, preview: URL.createObjectURL(file) }));
+    onUpdate({ ...cardData, newImages: [...newImages, ...previews] });
+    e.target.value = "";
   };
 
-  const removeExistingImage = (url) => setExistingImages(prev => prev.filter(u => u !== url));
-  const removeNewImage = (idx) => setNewImages(prev => prev.filter((_, i) => i !== idx));
+  const removeExistingImage = (url) =>
+    onUpdate({ ...cardData, existingImages: existingImages.filter((u) => u !== url) });
+
+  const removeNewImage = (idx) =>
+    onUpdate({ ...cardData, newImages: newImages.filter((_, i) => i !== idx) });
 
   return (
     <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 space-y-4 relative">
-      <p className="text-xs font-black uppercase tracking-widest text-brand-500 absolute top-4 right-4">Card {index}</p>
-      
+      <p className="text-xs font-black uppercase tracking-widest text-brand-500 absolute top-4 right-4">
+        Card {index}
+      </p>
+
       {/* Inputs */}
       <div className="space-y-3 pt-6">
-        <InputField label="Name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Modern Villa" />
-        <InputField label="Place" value={place} onChange={e => setPlace(e.target.value)} placeholder="e.g. Dubai, UAE" />
-        <InputField label="Date" value={date} onChange={e => setDate(e.target.value)} placeholder="e.g. October 2023" />
+        <InputField
+          label="Name"
+          value={cardData.name || ""}
+          onChange={(e) => onUpdate({ ...cardData, name: e.target.value })}
+          placeholder="e.g. Modern Villa"
+        />
+        <InputField
+          label="Place"
+          value={cardData.place || ""}
+          onChange={(e) => onUpdate({ ...cardData, place: e.target.value })}
+          placeholder="e.g. Dubai, UAE"
+        />
+        <InputField
+          label="Date"
+          value={cardData.date || ""}
+          onChange={(e) => onUpdate({ ...cardData, date: e.target.value })}
+          placeholder="e.g. October 2023"
+        />
       </div>
 
       {/* Image Upload */}
       <div className="pt-2 border-t border-gray-100">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Images (Max 2)</label>
-          <span className="text-xs font-semibold text-brand-500">{existingImages.length + newImages.length} / 2</span>
+          <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
+            Images (Max 2)
+          </label>
+          <span className="text-xs font-semibold text-brand-500">
+            {existingImages.length + newImages.length} / 2
+          </span>
         </div>
 
         {existingImages.length + newImages.length < 2 && (
@@ -144,9 +161,12 @@ const GalleryCardManager = ({ index, cardData, onUpdate }) => {
         )}
 
         {/* Previews */}
-        <div className="flex gap-3 mt-3">
+        <div className="flex gap-3 mt-3 flex-wrap">
           {existingImages.map((url, i) => (
-            <div key={`ext-${i}`} className="relative w-20 h-20 rounded-xl border border-gray-200 bg-white overflow-hidden group shadow-sm flex-shrink-0">
+            <div
+              key={`ext-${i}`}
+              className="relative w-20 h-20 rounded-xl border border-gray-200 bg-white overflow-hidden group shadow-sm flex-shrink-0"
+            >
               <img src={url} alt={`img-${i}`} className="w-full h-full object-cover" />
               <button
                 onClick={() => removeExistingImage(url)}
@@ -157,7 +177,10 @@ const GalleryCardManager = ({ index, cardData, onUpdate }) => {
             </div>
           ))}
           {newImages.map((img, i) => (
-            <div key={`new-${i}`} className="relative w-20 h-20 rounded-xl border-2 border-brand-200 bg-brand-50 overflow-hidden group shadow-sm flex-shrink-0">
+            <div
+              key={`new-${i}`}
+              className="relative w-20 h-20 rounded-xl border-2 border-brand-200 bg-brand-50 overflow-hidden group shadow-sm flex-shrink-0"
+            >
               <img src={img.preview} alt={`new-${i}`} className="w-full h-full object-cover" />
               <button
                 onClick={() => removeNewImage(i)}
@@ -174,19 +197,22 @@ const GalleryCardManager = ({ index, cardData, onUpdate }) => {
 };
 
 // ── Main Component ───────────────────────────────────────────────────────────
+const CARD_KEYS = ["card1", "card2", "card3", "card4", "card5"];
+
+const emptyCard = () => ({ name: "", place: "", date: "", existingImages: [], newImages: [] });
+
 const HomeGallery = () => {
   const qc = useQueryClient();
   const galleryFlash = useFlashSuccess();
 
-  // State
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
   const [cardsData, setCardsData] = useState({
-    card1: { name: "", place: "", date: "", existingImages: [], newImages: [] },
-    card2: { name: "", place: "", date: "", existingImages: [], newImages: [] },
-    card3: { name: "", place: "", date: "", existingImages: [], newImages: [] },
-    card4: { name: "", place: "", date: "", existingImages: [], newImages: [] },
-    card5: { name: "", place: "", date: "", existingImages: [], newImages: [] },
+    card1: emptyCard(),
+    card2: emptyCard(),
+    card3: emptyCard(),
+    card4: emptyCard(),
+    card5: emptyCard(),
   });
 
   // Fetch Data
@@ -198,23 +224,23 @@ const HomeGallery = () => {
     },
   });
 
-  // Seed data
+  // Seed state from DB data
   useEffect(() => {
-    if (!data || !data.gallery) return;
+    if (!data?.gallery) return;
     setHeading(data.gallery.heading || "");
     setSubheading(data.gallery.subheading || "");
-    
     setCardsData({
-      card1: { ...data.gallery.card1, newImages: [], existingImages: data.gallery.card1?.images || [] },
-      card2: { ...data.gallery.card2, newImages: [], existingImages: data.gallery.card2?.images || [] },
-      card3: { ...data.gallery.card3, newImages: [], existingImages: data.gallery.card3?.images || [] },
-      card4: { ...data.gallery.card4, newImages: [], existingImages: data.gallery.card4?.images || [] },
-      card5: { ...data.gallery.card5, newImages: [], existingImages: data.gallery.card5?.images || [] },
+      card1: { ...emptyCard(), ...data.gallery.card1, existingImages: data.gallery.card1?.images || [] },
+      card2: { ...emptyCard(), ...data.gallery.card2, existingImages: data.gallery.card2?.images || [] },
+      card3: { ...emptyCard(), ...data.gallery.card3, existingImages: data.gallery.card3?.images || [] },
+      card4: { ...emptyCard(), ...data.gallery.card4, existingImages: data.gallery.card4?.images || [] },
+      card5: { ...emptyCard(), ...data.gallery.card5, existingImages: data.gallery.card5?.images || [] },
     });
   }, [data]);
 
+  // Stable per-key update handler
   const handleCardUpdate = (key, newData) => {
-    setCardsData(prev => ({ ...prev, [key]: newData }));
+    setCardsData((prev) => ({ ...prev, [key]: newData }));
   };
 
   // Mutation
@@ -223,14 +249,14 @@ const HomeGallery = () => {
       const formData = new FormData();
       formData.append("heading", heading);
       formData.append("subheading", subheading);
-      
-      ["card1", "card2", "card3", "card4", "card5"].forEach(key => {
-        formData.append(`${key}Name`, cardsData[key].name);
-        formData.append(`${key}Place`, cardsData[key].place);
-        formData.append(`${key}Date`, cardsData[key].date);
-        formData.append(`${key}ExistingImages`, JSON.stringify(cardsData[key].existingImages));
-        
-        cardsData[key].newImages.forEach(img => {
+
+      CARD_KEYS.forEach((key) => {
+        const card = cardsData[key];
+        formData.append(`${key}Name`, card.name || "");
+        formData.append(`${key}Place`, card.place || "");
+        formData.append(`${key}Date`, card.date || "");
+        formData.append(`${key}ExistingImages`, JSON.stringify(card.existingImages || []));
+        (card.newImages || []).forEach((img) => {
           formData.append(`${key}Images`, img.file);
         });
       });
@@ -243,7 +269,8 @@ const HomeGallery = () => {
       galleryFlash.flash();
       qc.invalidateQueries(["home-main"]);
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Failed to save Gallery section"),
+    onError: (err) =>
+      toast.error(err.response?.data?.message || "Failed to save Gallery section"),
   });
 
   if (isLoading) {
@@ -259,7 +286,9 @@ const HomeGallery = () => {
       {/* Header */}
       <div className="bg-dark-800 p-6 rounded-3xl mb-6 shadow-sm border border-surface-border">
         <h1 className="text-2xl font-bold text-white">Home — Gallery Section</h1>
-        <p className="text-gray-400 text-sm mt-1">Manage the image gallery showcasing our best projects.</p>
+        <p className="text-gray-400 text-sm mt-1">
+          Manage the image gallery showcasing our best projects.
+        </p>
       </div>
 
       {/* ── Gallery Section ── */}
@@ -267,26 +296,26 @@ const HomeGallery = () => {
         title="Gallery Details"
         icon={ImageIcon}
         onSave={() => galleryMutation.mutate()}
-        isSaving={galleryMutation.isLoading}
+        isSaving={galleryMutation.isPending}
         saved={galleryFlash.saved}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-          <InputField 
-            label="Heading" 
-            value={heading} 
-            onChange={e => setHeading(e.target.value)} 
-            placeholder="e.g. Our Portfolio" 
+          <InputField
+            label="Heading"
+            value={heading}
+            onChange={(e) => setHeading(e.target.value)}
+            placeholder="e.g. Our Portfolio"
           />
-          <InputField 
-            label="Subheading" 
-            value={subheading} 
-            onChange={e => setSubheading(e.target.value)} 
-            placeholder="e.g. Explore our finest work" 
+          <InputField
+            label="Subheading"
+            value={subheading}
+            onChange={(e) => setSubheading(e.target.value)}
+            placeholder="e.g. Explore our finest work"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {["card1", "card2", "card3", "card4", "card5"].map((key, i) => (
+          {CARD_KEYS.map((key, i) => (
             <GalleryCardManager
               key={key}
               index={i + 1}

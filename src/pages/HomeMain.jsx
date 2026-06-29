@@ -136,7 +136,7 @@ const HomeMain = () => {
         title="Hero Section"
         icon={Type}
         onSave={() => heroMutation.mutate()}
-        isSaving={heroMutation.isLoading}
+        isSaving={heroMutation.isPending}
         saved={heroFlash.saved}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

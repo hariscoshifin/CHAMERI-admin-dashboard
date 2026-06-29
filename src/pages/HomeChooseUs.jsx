@@ -209,7 +209,7 @@ const HomeChooseUs = () => {
         title="Why Choose Us Details"
         icon={Star}
         onSave={() => chooseUsMutation.mutate()}
-        isSaving={chooseUsMutation.isLoading}
+        isSaving={chooseUsMutation.isPending}
         saved={chooseUsFlash.saved}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">

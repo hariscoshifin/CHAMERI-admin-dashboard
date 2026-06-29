@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api/axiosInstance";
 import toast from "react-hot-toast";
-import { Save, Loader2, Image as ImageIcon, CheckCircle2, UploadCloud, X } from "lucide-react";
+import { Save, Loader2, Image as ImageIcon, CheckCircle2, UploadCloud, X, Plus } from "lucide-react";
 
 // --- Custom Hook ---
 const useFlashSuccess = () => {
@@ -84,6 +84,7 @@ const AboutTestimonial = () => {
   const qc = useQueryClient();
   const testimonialFlash = useFlashSuccess();
   const testimonialImgRefs = useRef([]);
+  const testimonialCardImgRefs = useRef([]);
 
   const [testimonialHeading, setTestimonialHeading] = useState("");
   const [testimonialSubheading, setTestimonialSubheading] = useState("");
@@ -111,7 +112,10 @@ const AboutTestimonial = () => {
         designation: c.designation || "",
         existingImage: c.image || "",
         newImage: null,
-        preview: ""
+        preview: "",
+        existingCardImage: c.cardImage || "",
+        newCardImage: null,
+        cardImagePreview: "",
       });
     }
     setTestimonialCards(seededCards);
@@ -122,27 +126,41 @@ const AboutTestimonial = () => {
       const formData = new FormData();
       formData.append("testimonialHeading", testimonialHeading);
       formData.append("testimonialSubheading", testimonialSubheading);
-      
-      const cardsData = testimonialCards.map((c, i) => ({
-         quote: c.quote,
-         name: c.name,
-         designation: c.designation,
-         existingImage: c.existingImage,
-         newImageIndex: c.newImage ? i : null
-      }));
-      formData.append("testimonialsData", JSON.stringify(cardsData));
-      
+
+      const cardsData = [];
+      let newImageIndex = 0;
+      let newCardImageIndex = 0;
+
       testimonialCards.forEach(c => {
-         if (c.newImage) formData.append("testimonialImages", c.newImage);
+        const payload = {
+          quote: c.quote,
+          name: c.name,
+          designation: c.designation,
+          existingImage: c.existingImage,
+          existingCardImage: c.existingCardImage,
+        };
+        if (c.newImage) {
+          payload.newImageIndex = newImageIndex;
+          formData.append("testimonialImages", c.newImage);
+          newImageIndex++;
+        }
+        if (c.newCardImage) {
+          payload.newCardImageIndex = newCardImageIndex;
+          formData.append("testimonialCardImages", c.newCardImage);
+          newCardImageIndex++;
+        }
+        cardsData.push(payload);
       });
-      
+
+      formData.append("testimonialsData", JSON.stringify(cardsData));
+
       return api.put("/about/main/testimonial-section", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
     },
     onSuccess: () => {
       testimonialFlash.flash();
-      setTestimonialCards(prev => prev.map(item => ({ ...item, newImage: null, preview: "" })));
+      setTestimonialCards(prev => prev.map(item => ({ ...item, newImage: null, preview: "", newCardImage: null, cardImagePreview: "" })));
       qc.invalidateQueries(["about-main"]);
     },
     onError: (err) => toast.error(err.response?.data?.message || "Failed to save Testimonial Section"),
@@ -194,20 +212,61 @@ const AboutTestimonial = () => {
               </button>
               <p className="text-xs font-black uppercase tracking-widest text-brand-500">Card {i + 1}</p>
 
+              {/* Card Background Image */}
               <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Image</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Card Image (Background)</label>
+                <div
+                  onClick={() => testimonialCardImgRefs.current[i]?.click()}
+                  className="relative w-full h-36 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-brand-300 transition-colors overflow-hidden group"
+                >
+                  {(card.cardImagePreview || card.existingCardImage) ? (
+                    <>
+                      <img
+                        src={card.cardImagePreview || card.existingCardImage}
+                        alt="Card Background"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                        <UploadCloud size={20} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <UploadCloud size={20} className="mx-auto text-gray-400 mb-1" />
+                      <span className="text-xs text-gray-400">Upload Card Image</span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  ref={el => testimonialCardImgRefs.current[i] = el}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => {
+                    const f = e.target.files[0];
+                    if (!f) return;
+                    setTestimonialCards(prev => prev.map((item, idx) =>
+                      idx === i ? { ...item, newCardImage: f, cardImagePreview: URL.createObjectURL(f) } : item
+                    ));
+                  }}
+                />
+              </div>
+
+              {/* Avatar Image */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Avatar (Person Photo)</label>
                 <div
                   onClick={() => testimonialImgRefs.current[i]?.click()}
-                  className="relative w-24 h-24 rounded-full border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-brand-300 transition-colors overflow-hidden group mx-auto"
+                  className="relative w-20 h-20 rounded-full border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-brand-300 transition-colors overflow-hidden group mx-auto"
                 >
                   {(card.preview || card.existingImage) ? (
                     <>
                       <img
                         src={card.preview || card.existingImage}
-                        alt="Testimonial"
+                        alt="Avatar"
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                         <UploadCloud size={16} />
                       </div>
                     </>
@@ -265,12 +324,14 @@ const AboutTestimonial = () => {
            type="button"
            onClick={() => {
              setTestimonialCards(prev => [...prev, {
-               quote: "", name: "", designation: "", existingImage: "", newImage: null, preview: ""
+               quote: "", name: "", designation: "",
+               existingImage: "", newImage: null, preview: "",
+               existingCardImage: "", newCardImage: null, cardImagePreview: "",
              }]);
            }}
-           className="w-full py-4 border-2 border-dashed border-gray-200 rounded-2xl text-gray-500 font-semibold hover:bg-gray-50 hover:border-brand-300 transition-colors"
+           className="w-full py-4 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center gap-2 text-gray-500 font-semibold hover:bg-gray-50 hover:text-brand-600 hover:border-brand-300 transition-all"
         >
-           + Add Another Card
+           <Plus size={18} /> Add Another Card
         </button>
       </FormCard>
     </div>

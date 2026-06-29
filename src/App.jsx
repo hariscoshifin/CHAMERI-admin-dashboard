@@ -24,6 +24,7 @@ import HomeChooseUs from "./pages/HomeChooseUs";
 import HomeGallery from "./pages/HomeGallery";
 import HomeOurTeam from "./pages/HomeOurTeam";
 import HomeTestimonial from "./pages/HomeTestimonial";
+import HomeFAQ from "./pages/HomeFAQ";
 import GalleryHero from "./pages/GalleryHero";
 import GalleryImages from "./pages/GalleryImages";
 import KiwanoHero from "./pages/KiwanoHero";
@@ -90,6 +91,7 @@ function App() {
                 <Route path="/home/gallery" element={<HomeGallery />} />
                 <Route path="/home/team" element={<HomeOurTeam />} />
                 <Route path="/home/testimonial" element={<HomeTestimonial />} />
+                <Route path="/home/faq" element={<HomeFAQ />} />
                 
                 {/* About Us Routes */}
                 <Route path="/about/hero" element={<AboutHero />} />
